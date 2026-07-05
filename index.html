@@ -25,12 +25,18 @@
     font-size: 15px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   .wrap {
     max-width: 880px;
     margin: 0 auto;
     padding: 0 32px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Header */
@@ -69,6 +75,18 @@
     font-weight: 500;
     letter-spacing: -0.02em;
     line-height: 1.2;
+  }
+  .brand-subtitle {
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+    font-style: italic;
+  }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
   }
   .brand-updated {
     font-family: 'JetBrains Mono', monospace;
@@ -110,6 +128,7 @@
   .papers {
     display: flex;
     flex-direction: column;
+    flex: 1;
   }
   .paper {
     display: grid;
@@ -211,6 +230,70 @@
     border-radius: 4px;
   }
 
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 0;
+    margin-top: auto;
+  }
+  .pagination-btn {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--fg);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pagination-btn:hover:not(:disabled) {
+    background: var(--hover);
+    border-color: var(--fg);
+  }
+  .pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .pagination-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .pagination-numbers {
+    display: flex;
+    gap: 4px;
+  }
+  .page-num {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-num:hover {
+    background: var(--hover);
+    color: var(--fg);
+  }
+  .page-num.active {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
   /* Footer */
   footer {
     padding: 40px 0 48px;
@@ -247,11 +330,14 @@
     header { padding: 36px 0 28px; }
     .brand img { width: 48px; height: 48px; }
     .brand-name { font-size: 18px; }
+    .brand-subtitle { font-size: 11px; }
     .brand-updated { font-size: 10.5px; }
     .paper { grid-template-columns: 1fr; gap: 6px; }
     .year { font-size: 12px; }
     .paper-title { font-size: 16px; }
     footer { flex-direction: column; gap: 8px; }
+    .pagination { flex-wrap: wrap; }
+    .pagination-numbers { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
   }
 </style>
 </head>
@@ -263,9 +349,12 @@
           <img src="https://avatars.githubusercontent.com/u/290281786?s=400&u=20010d1634539a17c0b9cc1fbcf1339d16052125&v=4" alt="ZEanth Laboratory" />
           <div class="brand-text">
             <span class="brand-name">ZEanth Laboratory</span>
-            <span class="brand-updated" id="lastUpdated">Last updated —</span>
+            <span class="brand-subtitle">ZEanth Laboratory from Vietnam with love</span>
           </div>
         </a>
+        <div class="header-right">
+          <span class="brand-updated" id="lastUpdated">Last updated —</span>
+        </div>
       </div>
     </header>
 
@@ -278,6 +367,8 @@
     </div>
 
     <main class="papers" id="papersList"></main>
+
+    <div class="pagination" id="pagination"></div>
 
     <footer>
       <span>© <span id="year"></span> ZEanth Laboratory</span>
@@ -301,6 +392,10 @@
       doi: null
     }
   ];
+
+  const ITEMS_PER_PAGE = 2;
+  let currentPage = 1;
+  let currentQuery = '';
 
   // ============================================================
   // Last updated
@@ -328,6 +423,7 @@
   // ============================================================
   const listEl = document.getElementById('papersList');
   const searchEl = document.getElementById('searchInput');
+  const paginationEl = document.getElementById('pagination');
 
   function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, c => ({
@@ -335,9 +431,9 @@
     }[c]));
   }
 
-  function renderPapers(query = '') {
-    const q = query.trim().toLowerCase();
-    const filtered = PAPERS.filter(p => {
+  function getFilteredPapers() {
+    const q = currentQuery.trim().toLowerCase();
+    return PAPERS.filter(p => {
       if (!q) return true;
       return (
         p.title.toLowerCase().includes(q) ||
@@ -347,8 +443,16 @@
         (p.abstract || '').toLowerCase().includes(q)
       );
     }).sort((a, b) => b.year - a.year);
+  }
 
-    // Case 1: No papers at all in the repository
+  function renderPapers() {
+    const filtered = getFilteredPapers();
+    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+    
+    // Ensure currentPage is valid
+    if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+
+    // Case 1: No papers at all
     if (PAPERS.length === 0) {
       listEl.innerHTML = `
         <div class="empty">
@@ -361,10 +465,11 @@
           <div class="empty-sub">The archive is being prepared. Check back soon — new work will appear here as it is released.</div>
         </div>
       `;
+      paginationEl.innerHTML = '';
       return;
     }
 
-    // Case 2: Papers exist but none match the search
+    // Case 2: No search results
     if (filtered.length === 0) {
       listEl.innerHTML = `
         <div class="empty">
@@ -374,13 +479,18 @@
             <path d="M8 11h6" opacity="0.6"/>
           </svg>
           <div class="empty-title">No results</div>
-          <div class="empty-sub">Nothing matches <span class="empty-query">${escapeHtml(query)}</span>. Try a different keyword or clear the search.</div>
+          <div class="empty-sub">Nothing matches <span class="empty-query">${escapeHtml(currentQuery)}</span>. Try a different keyword or clear the search.</div>
         </div>
       `;
+      paginationEl.innerHTML = '';
       return;
     }
 
-    listEl.innerHTML = filtered.map(p => `
+    // Paginate
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pagePapers = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+    listEl.innerHTML = pagePapers.map(p => `
       <article class="paper">
         <div class="year">${p.year}</div>
         <div class="paper-body">
@@ -398,9 +508,64 @@
         </div>
       </article>
     `).join('');
+
+    renderPagination(totalPages);
   }
 
-  searchEl.addEventListener('input', e => renderPapers(e.target.value));
+  function renderPagination(totalPages) {
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+
+    let html = '';
+
+    // Previous button
+    html += `
+      <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+        Prev
+      </button>
+    `;
+
+    // Page numbers
+    html += '<div class="pagination-numbers">';
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+        <button class="page-num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+          ${i}
+        </button>
+      `;
+    }
+    html += '</div>';
+
+    // Next button
+    html += `
+      <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+    `;
+
+    paginationEl.innerHTML = html;
+  }
+
+  window.changePage = function(page) {
+    currentPage = page;
+    renderPapers();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  searchEl.addEventListener('input', e => {
+    currentQuery = e.target.value;
+    currentPage = 1; // Reset to first page on search
+    renderPapers();
+  });
+
   renderPapers();
 
   // Year
