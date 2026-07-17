@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>[{{ID}}] {{TITLE}} — {{ARCHIVE_NAME}}</title>
+<meta name="description" content="{{META_DESCRIPTION}}" />
+<link rel="canonical" href="{{CANONICAL_URL}}" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="{{TITLE}}" />
+<meta property="og:description" content="{{META_DESCRIPTION}}" />
+<link rel="icon" href="{{ARCHIVE_LOGO}}" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css" />
+<link rel="stylesheet" href="../../assets/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="header-inner">
+        <a class="brand" href="../../" >
+          <img src="{{ARCHIVE_LOGO}}" alt="{{ARCHIVE_NAME}}" />
+          <div class="brand-text">
+            <span class="brand-name">{{ARCHIVE_NAME}}</span>
+            <span class="brand-subtitle">{{ARCHIVE_TAGLINE}}</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <span class="brand-updated" id="lastUpdated">{{ARCHIVE_SHORT}} Archive</span>
+          <nav class="header-nav">
+            <a href="../../">Archive</a>
+            <a href="{{ARCHIVE_GITHUB}}" target="_blank" rel="noopener">GitHub</a>
+            <a href="../../rss.xml">RSS</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <div class="breadcrumb">
+      <a href="../../">{{ARCHIVE_SHORT}} Archive</a> › <a href="../../?category={{PRIMARY_CATEGORY}}">{{PRIMARY_CATEGORY}}</a> › {{ARCHIVE_SHORT}}:{{ID}}
+    </div>
+
+    <main>
+      <section class="abs-header">
+        <div class="abs-idline">
+          <span class="paper-id mono">{{ARCHIVE_SHORT}}:{{ID}} <span class="mono" style="color:var(--faint)">[{{VERSION}}]</span></span>
+          {{STATUS_BADGE}}
+        </div>
+        <h1 class="abs-title">{{TITLE}}</h1>
+        <div class="abs-authors">{{AUTHORS}}</div>
+        <div class="abs-tags">{{CATEGORY_TAGS}}</div>
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">Abstract</div>
+        <p class="abs-abstract">{{ABSTRACT}}</p>
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">Details</div>
+        <dl class="abs-fields">
+          <dt>Submitted</dt><dd>{{SUBMITTED_DATE_FMT}}</dd>
+          {{COMMENTS_ROW}}
+          {{JOURNALREF_ROW}}
+          {{DOI_ROW}}
+        </dl>
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">License</div>
+        {{LICENSE_SECTION}}
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">Access the paper</div>
+        <div class="abs-actions">
+          {{PDF_BUTTON}}
+          {{CODE_BUTTON}}
+          {{DATASET_BUTTON}}
+          {{DOI_BUTTON}}
+        </div>
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">Submission history</div>
+        <table class="history-table">
+          <thead><tr><th>Version</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+          <tbody>
+            {{HISTORY_ROWS}}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="abs-section">
+        <div class="abs-section-label">Cite as</div>
+        <div class="bibtex-box" id="bibtexBox">{{BIBTEX}}</div>
+        <button class="copy-btn" id="copyBtn" style="margin-top:10px;position:static;">Copy BibTeX</button>
+      </section>
+    </main>
+
+    <footer>
+      <span>© <span id="year"></span> {{ARCHIVE_NAME}} · CS paper archive</span>
+      <a href="{{ARCHIVE_REPO}}" target="_blank" rel="noopener">GitHub →</a>
+    </footer>
+  </div>
+
+  <!-- Toast notification for copy feedback -->
+  <div class="toast" id="copyToast"></div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ── Copy BibTeX with fallback ── */
+  const copyBtn = document.getElementById('copyBtn');
+  const bibtexBox = document.getElementById('bibtexBox');
+  const toast = document.getElementById('copyToast');
+
+  function showToast(message, isError) {
+    toast.textContent = message;
+    toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success') + ' toast-show';
+    setTimeout(() => { toast.classList.remove('toast-show'); }, 2200);
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  copyBtn.addEventListener('click', async () => {
+    const text = bibtexBox.textContent;
+    let copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch (_) {}
+    }
+    if (!copied) {
+      copied = fallbackCopy(text);
+    }
+    if (copied) {
+      copyBtn.textContent = 'Copied ✓';
+      copyBtn.classList.add('copied');
+      showToast('BibTeX copied to clipboard', false);
+      setTimeout(() => { copyBtn.textContent = 'Copy BibTeX'; copyBtn.classList.remove('copied'); }, 1800);
+    } else {
+      showToast('Could not copy — please select and copy manually', true);
+    }
+  });
+</script>
+</body>
+</html>

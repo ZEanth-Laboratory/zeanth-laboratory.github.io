@@ -3,350 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ZEanth Laboratory — Papers</title>
+<title>ZEanth Laboratory — Paper Archive</title>
+<meta name="description" content="Paper archive of ZEanth Laboratory — preprints and publications in computer science." />
 <link rel="icon" href="https://avatars.githubusercontent.com/u/290281786?s=400&u=20010d1634539a17c0b9cc1fbcf1339d16052125&v=4" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css" />
-<style>
-  :root {
-    --bg: #ffffff;
-    --fg: #0a0a0a;
-    --muted: #6b6b6b;
-    --line: #e8e8e8;
-    --hover: #f5f5f5;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--fg);
-    font-size: 15px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  .wrap {
-    width: 100%;
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 0 32px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Header */
-  header {
-    padding: 56px 0 36px;
-    border-bottom: 1px solid var(--line);
-  }
-  .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    text-decoration: none;
-    color: var(--fg);
-  }
-  .brand img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  .brand:hover img { transform: scale(1.04); }
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .brand-name {
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-  }
-  .brand-subtitle {
-    font-size: 12.5px;
-    color: var(--muted);
-    letter-spacing: -0.01em;
-    font-style: italic;
-  }
-  .header-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-  .brand-updated {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    color: var(--muted);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  /* Search */
-  .search-bar {
-    margin: 32px 0 24px;
-    position: relative;
-  }
-  .search-bar input {
-    width: 100%;
-    padding: 12px 16px 12px 42px;
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    color: var(--fg);
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-    transition: border 0.2s;
-  }
-  .search-bar input:focus { border-color: var(--fg); }
-  .search-bar svg {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 16px;
-    height: 16px;
-    color: var(--muted);
-  }
-
-  /* Papers */
-  .papers {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-  .paper {
-    display: grid;
-    grid-template-columns: 72px 1fr;
-    gap: 24px;
-    padding: 28px 0;
-    border-bottom: 1px solid var(--line);
-    transition: background 0.2s;
-  }
-  .paper:first-child { border-top: 1px solid var(--line); }
-  .paper:hover { background: var(--hover); margin: 0 -12px; padding-left: 12px; padding-right: 12px; border-radius: 6px; }
-
-  .year {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-    padding-top: 4px;
-    letter-spacing: -0.02em;
-  }
-  .paper-body { min-width: 0; }
-  .paper-title {
-    font-size: 17px;
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    line-height: 1.35;
-    margin-bottom: 6px;
-    color: var(--fg);
-  }
-  .paper-meta {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .paper-meta .venue {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .paper-abstract {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.6;
-    margin-bottom: 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .paper-links {
-    display: flex;
-    gap: 14px;
-    font-size: 13px;
-  }
-  .paper-links a {
-    color: var(--fg);
-    text-decoration: none;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 1px;
-    transition: border 0.2s;
-  }
-  .paper-links a:hover { border-color: var(--fg); }
-
-  /* Empty state */
-  .empty {
-    padding: 96px 24px;
-    text-align: center;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    animation: fadeIn 0.5s ease both;
-  }
-  .empty-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 20px;
-    color: var(--muted);
-    opacity: 0.6;
-  }
-  .empty-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--fg);
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
-  }
-  .empty-sub {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.6;
-    max-width: 360px;
-    margin: 0 auto;
-  }
-  .empty-query {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    background: var(--hover);
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-
-  /* Pagination */
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 32px 0;
-    margin-top: auto;
-  }
-  .pagination-btn {
-    background: none;
-    border: 1px solid var(--line);
-    color: var(--fg);
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .pagination-btn:hover:not(:disabled) {
-    background: var(--hover);
-    border-color: var(--fg);
-  }
-  .pagination-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-  .pagination-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-  .pagination-numbers {
-    display: flex;
-    gap: 4px;
-  }
-  .page-num {
-    background: none;
-    border: 1px solid transparent;
-    color: var(--muted);
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .page-num:hover {
-    background: var(--hover);
-    color: var(--fg);
-  }
-  .page-num.active {
-    background: var(--fg);
-    color: var(--bg);
-    border-color: var(--fg);
-  }
-
-  /* Footer */
-  footer {
-    padding: 40px 0 48px;
-    border-top: 1px solid var(--line);
-    margin-top: 32px;
-    font-size: 12px;
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: -0.02em;
-  }
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--fg); }
-
-  /* Animations */
-  .paper { animation: fadeUp 0.4s ease both; }
-  .paper:nth-child(1) { animation-delay: 0.02s; }
-  .paper:nth-child(2) { animation-delay: 0.06s; }
-  .paper:nth-child(3) { animation-delay: 0.10s; }
-  .paper:nth-child(4) { animation-delay: 0.14s; }
-  .paper:nth-child(5) { animation-delay: 0.18s; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @media (max-width: 560px) {
-    .wrap { padding: 0 20px; }
-    header { padding: 36px 0 28px; }
-    .brand img { width: 48px; height: 48px; }
-    .brand-name { font-size: 18px; }
-    .brand-subtitle { font-size: 11px; }
-    .brand-updated { font-size: 10.5px; }
-    .paper { grid-template-columns: 1fr; gap: 6px; }
-    .year { font-size: 12px; }
-    .paper-title { font-size: 16px; }
-    footer { flex-direction: column; gap: 8px; }
-    .pagination { flex-wrap: wrap; }
-    .pagination-numbers { order: 3; width: 100%; justify-content: center; margin-top: 8px; }
-  }
-</style>
+<link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="header-inner">
-        <a class="brand" href="https://github.com/ZEanth-Laboratory" target="_blank" rel="noopener">
+        <a class="brand" href="https://github.com/zeanth" target="_blank" rel="noopener">
           <img src="https://avatars.githubusercontent.com/u/290281786?s=400&u=20010d1634539a17c0b9cc1fbcf1339d16052125&v=4" alt="ZEanth Laboratory" />
           <div class="brand-text">
             <span class="brand-name">ZEanth Laboratory</span>
@@ -355,6 +23,10 @@
         </a>
         <div class="header-right">
           <span class="brand-updated" id="lastUpdated">Last updated —</span>
+          <nav class="header-nav">
+            <a href="https://github.com/zeanth" target="_blank" rel="noopener">GitHub</a>
+            <a href="rss.xml">RSS</a>
+          </nav>
         </div>
       </div>
     </header>
@@ -364,214 +36,39 @@
         <circle cx="11" cy="11" r="7"/>
         <path d="M21 21l-4.3-4.3"/>
       </svg>
-      <input type="text" id="searchInput" placeholder="Search papers, authors, venues..." />
+      <input type="text" id="searchInput" placeholder="Search papers, authors, categories..." />
     </div>
+
+    <div class="filters">
+      <select class="filter-select mono" id="categoryFilter">
+        <option value="">All categories</option>
+      </select>
+      <select class="filter-select mono" id="statusFilter">
+        <option value="">All statuses</option>
+      </select>
+      <select class="filter-select mono" id="yearFilter">
+        <option value="">All years</option>
+      </select>
+      <select class="filter-select mono" id="sortOrder">
+        <option value="new">Newest first</option>
+        <option value="old">Oldest first</option>
+        <option value="title">Title A–Z</option>
+      </select>
+    </div>
+
+    <div class="result-count" id="resultCount"></div>
 
     <main class="papers" id="papersList"></main>
 
     <div class="pagination" id="pagination"></div>
 
     <footer>
-      <span>© <span id="year"></span> ZEanth Laboratory</span>
-      <a href="https://github.com/ZEanth-Laboratory" target="_blank" rel="noopener">Github →</a>
+      <span>© <span id="year"></span> ZEanth Laboratory · CS paper archive</span>
+      <a href="https://github.com/zeanth/zeanth.github.io" target="_blank" rel="noopener">GitHub →</a>
     </footer>
   </div>
 
-<script>
-  // ============================================================
-  // EDIT THIS LIST TO ADD / UPDATE YOUR PAPERS
-  // ============================================================
-  const PAPERS = [
-    {
-      year: 2026,
-      title: "NeuroPath: 3D Multi-Task Deep Learning for MRI Brain Tumor Segmentation and Clinical Interpretation",
-      authors: "B. N. T. Sang",
-      venue: "Scientific Research Report",
-      abstract: "A comprehensive intelligent medical system for automated brain tumor segmentation on MRI, integrating CDFA-Mamba-DolphinNet — a custom 3D hybrid 2D-3D architecture with Mamba State Space Model at the bottleneck. The system features a Biological Rule Engine for anatomical plausibility validation, a Human Trust Score (HTS) for quantitative clinician feedback via PDF annotation, automated RANO 2.0 measurement, anatomical localization, and LLM-based report generation with interactive refinement. Achieves Dice 0.883 and HD95 3.91 mm on BraTS 2023 5-fold cross-validation.",
-      pdf: "https://zeanth-laboratory.github.io/papers/neuropath.pdf",
-      code: "#",
-      doi: null
-    }
-  ];
-
-  const ITEMS_PER_PAGE = 2;
-  let currentPage = 1;
-  let currentQuery = '';
-
-  // ============================================================
-  // Last updated
-  // ============================================================
-  function computeLastUpdated() {
-    if (PAPERS.length === 0) return null;
-    const latest = PAPERS.reduce((m, p) => {
-      const d = p.updated || new Date(p.year, 0, 1);
-      return d > m ? d : m;
-    }, new Date(0, 0, 1));
-    return latest;
-  }
-  function formatDate(d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${String(d.getDate()).padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  }
-  const lastUpdatedEl = document.getElementById('lastUpdated');
-  const latestDate = computeLastUpdated();
-  lastUpdatedEl.textContent = latestDate
-    ? `Last updated · ${formatDate(latestDate)}`
-    : `Last updated · —`;
-
-  // ============================================================
-  // Rendering
-  // ============================================================
-  const listEl = document.getElementById('papersList');
-  const searchEl = document.getElementById('searchInput');
-  const paginationEl = document.getElementById('pagination');
-
-  function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-  }
-
-  function getFilteredPapers() {
-    const q = currentQuery.trim().toLowerCase();
-    return PAPERS.filter(p => {
-      if (!q) return true;
-      return (
-        p.title.toLowerCase().includes(q) ||
-        p.authors.toLowerCase().includes(q) ||
-        p.venue.toLowerCase().includes(q) ||
-        String(p.year).includes(q) ||
-        (p.abstract || '').toLowerCase().includes(q)
-      );
-    }).sort((a, b) => b.year - a.year);
-  }
-
-  function renderPapers() {
-    const filtered = getFilteredPapers();
-    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-    
-    // Ensure currentPage is valid
-    if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
-
-    // Case 1: No papers at all
-    if (PAPERS.length === 0) {
-      listEl.innerHTML = `
-        <div class="empty">
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <path d="M14 2v6h6"/>
-            <path d="M9 13h6M9 17h4" opacity="0.5"/>
-          </svg>
-          <div class="empty-title">No papers yet</div>
-          <div class="empty-sub">The archive is being prepared. Check back soon — new work will appear here as it is released.</div>
-        </div>
-      `;
-      paginationEl.innerHTML = '';
-      return;
-    }
-
-    // Case 2: No search results
-    if (filtered.length === 0) {
-      listEl.innerHTML = `
-        <div class="empty">
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="M21 21l-4.3-4.3"/>
-            <path d="M8 11h6" opacity="0.6"/>
-          </svg>
-          <div class="empty-title">No results</div>
-          <div class="empty-sub">Nothing matches <span class="empty-query">${escapeHtml(currentQuery)}</span>. Try a different keyword or clear the search.</div>
-        </div>
-      `;
-      paginationEl.innerHTML = '';
-      return;
-    }
-
-    // Paginate
-    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-    const pagePapers = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
-
-    listEl.innerHTML = pagePapers.map(p => `
-      <article class="paper">
-        <div class="year">${p.year}</div>
-        <div class="paper-body">
-          <h2 class="paper-title">${escapeHtml(p.title)}</h2>
-          <div class="paper-meta">
-            <span>${escapeHtml(p.authors)}</span>
-            ${p.venue ? ` · <span class="venue">${escapeHtml(p.venue)}</span>` : ''}
-          </div>
-          ${p.abstract ? `<p class="paper-abstract">${escapeHtml(p.abstract)}</p>` : ''}
-          <div class="paper-links">
-            ${p.pdf && p.pdf !== '#' ? `<a href="${p.pdf}" target="_blank" rel="noopener">PDF</a>` : ''}
-            ${p.code && p.code !== '#' ? `<a href="${p.code}" target="_blank" rel="noopener">Code</a>` : ''}
-            ${p.doi ? `<a href="https://doi.org/${p.doi}" target="_blank" rel="noopener">DOI</a>` : ''}
-          </div>
-        </div>
-      </article>
-    `).join('');
-
-    renderPagination(totalPages);
-  }
-
-  function renderPagination(totalPages) {
-    if (totalPages <= 1) {
-      paginationEl.innerHTML = '';
-      return;
-    }
-
-    let html = '';
-
-    // Previous button
-    html += `
-      <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-        Prev
-      </button>
-    `;
-
-    // Page numbers
-    html += '<div class="pagination-numbers">';
-    for (let i = 1; i <= totalPages; i++) {
-      html += `
-        <button class="page-num ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-          ${i}
-        </button>
-      `;
-    }
-    html += '</div>';
-
-    // Next button
-    html += `
-      <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-        Next
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-      </button>
-    `;
-
-    paginationEl.innerHTML = html;
-  }
-
-  window.changePage = function(page) {
-    currentPage = page;
-    renderPapers();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  searchEl.addEventListener('input', e => {
-    currentQuery = e.target.value;
-    currentPage = 1; // Reset to first page on search
-    renderPapers();
-  });
-
-  renderPapers();
-
-  // Year
-  document.getElementById('year').textContent = new Date().getFullYear();
-</script>
+<script src="assets/common.js"></script>
+<script src="assets/listing.js"></script>
 </body>
 </html>
-

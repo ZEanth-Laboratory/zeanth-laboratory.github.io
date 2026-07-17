@@ -1,0 +1,56 @@
+{
+  "archive": {
+    "name": "ZEanth Laboratory",
+    "shortName": "ZL",
+    "tagline": "ZEanth Laboratory from Vietnam with love",
+    "url": "https://zeanth.github.io",
+    "github": "https://github.com/zeanth",
+    "logo": "https://avatars.githubusercontent.com/u/290281786?s=400&u=20010d1634539a17c0b9cc1fbcf1339d16052125&v=4",
+    "defaultPaperLicense": {
+      "spdx": "CC-BY-SA-4.0",
+      "name": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt"
+    }
+  },
+  "categories": [
+    { "code": "cs.CV", "name": "Computer Vision and Pattern Recognition" },
+    { "code": "cs.LG", "name": "Machine Learning" },
+    { "code": "cs.AI", "name": "Artificial Intelligence" },
+    { "code": "cs.CL", "name": "Computation and Language" },
+    { "code": "cs.NE", "name": "Neural and Evolutionary Computing" },
+    { "code": "cs.CR", "name": "Cryptography and Security" },
+    { "code": "cs.SE", "name": "Software Engineering" },
+    { "code": "cs.DC", "name": "Distributed, Parallel, and Cluster Computing" },
+    { "code": "cs.RO", "name": "Robotics" },
+    { "code": "cs.HC", "name": "Human-Computer Interaction" },
+    { "code": "cs.DB", "name": "Databases" },
+    { "code": "cs.IR", "name": "Information Retrieval" }
+  ],
+  "statuses": [
+    { "code": "preprint",      "label": "Preprint",      "order": 1 },
+    { "code": "under-review",  "label": "Under Review",  "order": 2 },
+    { "code": "accepted",      "label": "Accepted",      "order": 3 },
+    { "code": "published",     "label": "Published",     "order": 4 },
+    { "code": "withdrawn",     "label": "Withdrawn",     "order": 5 }
+  ],
+  "papers": [
+    {
+      "id": "2601.00001",
+      "version": "v1",
+      "title": "NeuroPath: 3D Multi-Task Deep Learning for MRI Brain Tumor Segmentation and Clinical Interpretation",
+      "authors": ["B. N. T. Sang"],
+      "categories": ["cs.CV", "cs.LG"],
+      "status": "preprint",
+      "abstract": "A comprehensive intelligent medical system for automated brain tumor segmentation on MRI, integrating CDFA-Mamba-DolphinNet — a custom 3D hybrid 2D-3D architecture with Mamba State Space Model at the bottleneck. The system features a Biological Rule Engine for anatomical plausibility validation, a Human Trust Score (HTS) for quantitative clinician feedback via PDF annotation, automated RANO 2.0 measurement, anatomical localization, and LLM-based report generation with interactive refinement. Achieves Dice 0.883 and HD95 3.91 mm on BraTS 2023 5-fold cross-validation.",
+      "comments": "BraTS 2023 5-fold cross-validation; Dice 0.883, HD95 3.91 mm",
+      "journalRef": "Scientific Research Report",
+      "doi": null,
+      "codeUrl": null,
+      "datasetUrl": null,
+      "submittedDate": "2026-01-10",
+      "history": [
+        { "version": "v1", "date": "2026-01-10", "note": "Initial submission" }
+      ]
+    }
+  ]
+}
