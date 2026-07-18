@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>[{{ID}}] {{TITLE}} — PDF — {{ARCHIVE_NAME}}</title>
+<meta name="description" content="PDF viewer for {{TITLE}}" />
+<link rel="icon" href="{{ARCHIVE_LOGO}}" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css" />
+<link rel="stylesheet" href="../../assets/style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+</head>
+<body class="pdf-viewer-body">
+  <div class="wrap">
+    <header>
+      <div class="header-inner">
+        <a class="brand" href="../../">
+          <img src="{{ARCHIVE_LOGO}}" alt="{{ARCHIVE_NAME}}" />
+          <div class="brand-text">
+            <span class="brand-name">{{ARCHIVE_NAME}}</span>
+            <span class="brand-subtitle">{{ARCHIVE_TAGLINE}}</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <span class="brand-updated">{{ARCHIVE_SHORT}} Archive</span>
+          <nav class="header-nav">
+            <a href="../../">Archive</a>
+            <a href="{{ARCHIVE_GITHUB}}" target="_blank" rel="noopener">GitHub</a>
+            <a href="../../rss.xml">RSS</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+ 
+    <div class="breadcrumb">
+      <a href="../../">{{ARCHIVE_SHORT}} Archive</a> › <a href="../../?category={{PRIMARY_CATEGORY}}">{{PRIMARY_CATEGORY}}</a> › <a href="../../abs/{{ID}}">{{ARCHIVE_SHORT}}:{{ID}}</a> › PDF <span id="versionLabel" class="mono" style="color:var(--faint)">{{LATEST_VERSION_UPPER}}</span>
+    </div>
+ 
+    <div class="pdf-toolbar">
+      <div class="pdf-toolbar-left">
+        <span class="pdf-toolbar-title">{{TITLE}}</span>
+      </div>
+      <div class="pdf-toolbar-right">
+        {{VERSION_SELECT}}
+        <button class="btn-download" id="downloadBtn">
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          <span id="btnText">Download PDF</span>
+        </button>
+      </div>
+    </div>
+ 
+    <div id="loading" class="pdf-loading">
+      <div class="spinner"></div>
+      <p>Loading document…</p>
+    </div>
+ 
+    <main class="pdf-viewport" id="viewport"></main>
+ 
+    <footer>
+      <span>© <span id="year"></span> {{ARCHIVE_NAME}} · CS paper archive</span>
+      <a href="{{ARCHIVE_REPO}}" target="_blank" rel="noopener">GitHub →</a>
+    </footer>
+  </div>
+ 
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+ 
+  const PAPER_ID = "{{ID}}";
+  const PAPER_TITLE = "{{TITLE_JS}}";
+  const VERSIONS = {{VERSIONS_JSON}};
+  const LATEST = "{{LATEST_VERSION}}";
+ 
+  /* ── Resolve requested version ── */
+  const params = new URLSearchParams(window.location.search);
+  let reqVer = params.get('version');
+  if (reqVer && !reqVer.startsWith('v')) reqVer = 'v' + reqVer;
+  if (!reqVer || !VERSIONS.includes(reqVer)) reqVer = LATEST;
+ 
+  const fileUrl = reqVer + '.pdf';
+  const saveName = PAPER_ID + reqVer + '.pdf';
+ 
+  /* ── Update UI for selected version ── */
+  document.getElementById('versionLabel').textContent = reqVer.toUpperCase();
+  const versionSelect = document.getElementById('versionSelect');
+  if (versionSelect) {
+    versionSelect.value = reqVer;
+    versionSelect.addEventListener('change', e => {
+      const v = e.target.value;
+      const url = new URL(window.location);
+      url.searchParams.set('version', v);
+      window.location.href = url.toString();
+    });
+  }
+ 
+  /* ── Render PDF ── */
+  const viewport = document.getElementById('viewport');
+  const loadingScreen = document.getElementById('loading');
+ 
+  pdfjsLib.getDocument(fileUrl).promise.then(pdf => {
+    loadingScreen.style.display = 'none';
+ 
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const canvas = document.createElement('canvas');
+      canvas.className = 'pdf-page-canvas';
+      viewport.appendChild(canvas);
+ 
+      pdf.getPage(i).then(page => {
+        const dpr = window.devicePixelRatio || 1;
+        const scale = 1.5;
+        const vp = page.getViewport({ scale });
+ 
+        canvas.width = vp.width * dpr;
+        canvas.height = vp.height * dpr;
+        canvas.style.width = vp.width + 'px';
+        canvas.style.height = vp.height + 'px';
+ 
+        page.render({
+          canvasContext: canvas.getContext('2d'),
+          viewport: vp,
+          transform: [dpr, 0, 0, dpr, 0, 0]
+        });
+      });
+    }
+  }).catch(err => {
+    console.error('PDF load error:', err);
+    loadingScreen.innerHTML =
+      '<div class="pdf-error">' +
+      '<p style="font-size:15px;font-weight:500;margin-bottom:8px;">Unable to load PDF</p>' +
+      '<p>The file <strong>' + reqVer + '.pdf</strong> could not be found or loaded.</p>' +
+      '<p style="margin-top:12px;"><a href="../../abs/' + encodeURIComponent(PAPER_ID) + '">← Back to abstract</a></p>' +
+      '</div>';
+  });
+ 
+  /* ── Download handler ── */
+  const downloadBtn = document.getElementById('downloadBtn');
+  const btnText = document.getElementById('btnText');
+ 
+  function triggerDownload() {
+    downloadBtn.disabled = true;
+    btnText.textContent = 'Downloading…';
+ 
+    fetch(fileUrl)
+      .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = saveName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        downloadBtn.disabled = false;
+        btnText.textContent = 'Download PDF';
+      })
+      .catch(() => {
+        downloadBtn.disabled = false;
+        btnText.textContent = 'Download PDF';
+        alert('Download failed. The PDF file may not be available yet.');
+      });
+  }
+ 
+  downloadBtn.addEventListener('click', triggerDownload);
+ 
+  /* ── Ctrl+S / Cmd+S override ── */
+  window.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (!downloadBtn.disabled) triggerDownload();
+    }
+  });
+</script>
+</body>
+</html>

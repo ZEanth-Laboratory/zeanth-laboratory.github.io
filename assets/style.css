@@ -507,6 +507,9 @@ body.pdf-viewer-body footer {
 }
 
 .pdf-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -596,7 +599,7 @@ body.pdf-viewer-body footer {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 5;
+  z-index: 20;
   gap: 14px;
   font-size: 13.5px;
   color: var(--muted);

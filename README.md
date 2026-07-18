@@ -37,33 +37,46 @@ GitHub Pages — so you never have to remember to run a build command.
 ```
 ├── index.html                 → the listing page (fetches papers.json)
 ├── papers.json                → single source of truth for all papers
-├── pdf/                       → drop PDFs here, named {id}.pdf
-├── abs/                       → generated permalink pages (one folder per id)
-├── templates/abs.template.html→ HTML template used to generate abs/ pages
+├── pdf/                       → contains paper folders with versioned PDFs and LICENSE files
+├── abs/                       → generated permalink abstract pages (one folder per id)
+├── templates/
+│   ├── abs.template.html      → HTML template used to generate abs/ pages
+│   └── pdf.template.html      → HTML template used to generate pdf/ viewer pages
 ├── assets/
 │   ├── style.css              → shared styling for every page
 │   ├── common.js               → shared helpers (badges, BibTeX, dates)
 │   └── listing.js              → listing page logic (search/filter/pagination)
 ├── scripts/
-│   ├── build.mjs               → generates abs/ pages, manifest, sitemap, rss
-│   └── new-paper.mjs           → interactive helper to scaffold a new entry
+│   ├── build.mjs               → generates abs/ and pdf/ pages, manifest, sitemap, rss, with validation
+│   ├── new-paper.mjs           → interactive CLI to add new papers and copy PDF/LICENSE files
+│   ├── new-version.mjs         → interactive CLI to publish new versions and bump history
+│   └── manage-paper.mjs        → interactive CLI to list, edit, status-update, delete, and validate papers
 └── .github/workflows/deploy.yml→ CI: build + deploy to GitHub Pages
 ```
 
-## Adding a paper
+## Adding and Managing Papers
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full walkthrough.
-In short:
+All operations are automated using helper scripts in the `scripts/` directory:
 
-```bash
-node scripts/new-paper.mjs      # prompts you and prints a ready-to-paste entry
-# paste the entry into papers.json
-# copy the PDF into pdf/{id}.pdf
-git add . && git commit -m "Add paper 2601.00002" && git push
-```
+1. **Adding a paper**:
+   Run the interactive helper to scaffold folders, configure license settings, place the PDF/LICENSE, update `papers.json`, and rebuild the site:
+   ```bash
+   node scripts/new-paper.mjs
+   ```
 
-Pushing to `main` is enough — GitHub Actions builds and deploys the
-rest.
+2. **Publishing a new version**:
+   To bump paper version (e.g. `v1` -> `v2`), update abstract details, place the new PDF, and record history:
+   ```bash
+   node scripts/new-version.mjs
+   ```
+
+3. **Managing existing papers**:
+   To list, edit metadata, update status quickly, delete papers, or validate repository integrity:
+   ```bash
+   node scripts/manage-paper.mjs
+   ```
+
+Pushing to `main` is enough — GitHub Actions builds and deploys the rest.
 
 ## Deploying this repository yourself
 

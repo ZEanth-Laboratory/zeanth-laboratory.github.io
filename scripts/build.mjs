@@ -27,6 +27,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 const PAPERS_JSON = path.join(ROOT, 'papers.json');
 const TEMPLATE_PATH = path.join(ROOT, 'templates', 'abs.template.html');
+const PDF_TEMPLATE_PATH = path.join(ROOT, 'templates', 'pdf.template.html');
 const ABS_DIR = path.join(ROOT, 'abs');
 const PDF_DIR = path.join(ROOT, 'pdf');
 
@@ -161,10 +162,33 @@ function buildLicenseSection(paper, archive) {
   const url = license.url || '';
   const isDefault = !paper.license;
 
+  const archiveRepo = `${archive.github.replace(/\/$/, '')}/${archive.url.replace(/^https?:\/\//, '').replace(/\/.*/,'')}`;
+
+  const licenseFile = paper.license?.licenseFile || archive.defaultPaperLicense?.licenseFile || 'LICENSE';
+  const localLicensePath = path.join(PDF_DIR, paper.id, licenseFile);
+  const hasLocalFile = fs.existsSync(localLicensePath);
+
+  let licenseFileUrl = paper.license?.licenseFileUrl || archive.defaultPaperLicense?.licenseFileUrl || null;
+
+  if (hasLocalFile) {
+    if (!licenseFileUrl) {
+      licenseFileUrl = `${archiveRepo}/blob/main/pdf/${paper.id}/${licenseFile}`;
+    }
+  } else {
+    if (paper.license?.licenseFile) {
+      console.warn(`  Warning: licenseFile "${licenseFile}" configured for paper ${paper.id} but not found at pdf/${paper.id}/${licenseFile}`);
+    }
+    if (licenseFileUrl) {
+      console.warn(`  Warning: licenseFileUrl configured for paper ${paper.id} but local license file not found at pdf/${paper.id}/${licenseFile}`);
+    }
+  }
+
+  const targetUrl = licenseFileUrl || url;
+
   let html = '<div class="license-info">';
   html += `<span class="license-badge">${spdx}</span>`;
-  if (url) {
-    html += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${name}</a>`;
+  if (targetUrl) {
+    html += `<a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener">${name}</a>`;
   } else {
     html += name;
   }
@@ -249,191 +273,42 @@ function buildAbsPage(paper, archive, template) {
    PDF viewer page builder (PDF.js-based)
    ────────────────────────────────────────────── */
 
-function buildPdfViewerPage(paper, archive, versions) {
+function escapeJsString(str) {
+  return String(str ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+}
+
+function buildPdfViewerPage(paper, archive, versions, template) {
   const latestVersion = versions[versions.length - 1];
   const versionsJson = JSON.stringify(versions);
   const archiveRepo = `${archive.github.replace(/\/$/, '')}/${archive.url.replace(/^https?:\/\//, '').replace(/\/.*/,'')}`;
   const primaryCategory = (paper.categories || [])[0] || 'cs';
 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>[${escapeHtml(paper.id)}] ${escapeHtml(paper.title)} — PDF — ${escapeHtml(archive.name)}</title>
-<meta name="description" content="PDF viewer for ${escapeHtml(paper.title)}" />
-<link rel="icon" href="${archive.logo}" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css" />
-<link rel="stylesheet" href="../../assets/style.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
-<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';<\/script>
-</head>
-<body class="pdf-viewer-body">
-  <div class="wrap">
-    <header>
-      <div class="header-inner">
-        <a class="brand" href="../../">
-          <img src="${archive.logo}" alt="${escapeHtml(archive.name)}" />
-          <div class="brand-text">
-            <span class="brand-name">${escapeHtml(archive.name)}</span>
-            <span class="brand-subtitle">${escapeHtml(archive.tagline)}</span>
-          </div>
-        </a>
-        <div class="header-right">
-          <span class="brand-updated">${escapeHtml(archive.shortName)} Archive</span>
-          <nav class="header-nav">
-            <a href="../../">Archive</a>
-            <a href="${archive.github}" target="_blank" rel="noopener">GitHub</a>
-            <a href="../../rss.xml">RSS</a>
-          </nav>
-        </div>
-      </div>
-    </header>
-
-    <div class="breadcrumb">
-      <a href="../../">${escapeHtml(archive.shortName)} Archive</a> › <a href="../../?category=${escapeHtml(primaryCategory)}">${escapeHtml(primaryCategory)}</a> › <a href="../../abs/${encodeURIComponent(paper.id)}">${escapeHtml(archive.shortName)}:${escapeHtml(paper.id)}</a> › PDF <span id="versionLabel" class="mono" style="color:var(--faint)">${escapeHtml(latestVersion).toUpperCase()}</span>
-    </div>
-
-    <div class="pdf-toolbar">
-      <div class="pdf-toolbar-left">
-        <span class="pdf-toolbar-title">${escapeHtml(paper.title)}</span>
-      </div>
-      <div class="pdf-toolbar-right">
-        ${versions.length > 1 ? `
+  let versionSelectHtml = '';
+  if (versions.length > 1) {
+    versionSelectHtml = `
         <select class="version-select" id="versionSelect">
           ${versions.map(v => `<option value="${escapeHtml(v)}"${v === latestVersion ? ' selected' : ''}>${escapeHtml(v).toUpperCase()}</option>`).join('')}
-        </select>` : ''}
-        <button class="btn-download" id="downloadBtn">
-          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-          <span id="btnText">Download PDF</span>
-        </button>
-      </div>
-    </div>
-
-    <div id="loading" class="pdf-loading">
-      <div class="spinner"></div>
-      <p>Loading document…</p>
-    </div>
-
-    <main class="pdf-viewport" id="viewport"></main>
-
-    <footer>
-      <span>© <span id="year"></span> ${escapeHtml(archive.name)} · CS paper archive</span>
-      <a href="${archiveRepo}" target="_blank" rel="noopener">GitHub →</a>
-    </footer>
-  </div>
-
-<script>
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  const PAPER_ID = ${JSON.stringify(paper.id)};
-  const PAPER_TITLE = ${JSON.stringify(paper.title)};
-  const VERSIONS = ${versionsJson};
-  const LATEST = ${JSON.stringify(latestVersion)};
-
-  /* ── Resolve requested version ── */
-  const params = new URLSearchParams(window.location.search);
-  let reqVer = params.get('version');
-  if (reqVer && !reqVer.startsWith('v')) reqVer = 'v' + reqVer;
-  if (!reqVer || !VERSIONS.includes(reqVer)) reqVer = LATEST;
-
-  const fileUrl = reqVer + '.pdf';
-  const saveName = PAPER_ID + reqVer + '.pdf';
-
-  /* ── Update UI for selected version ── */
-  document.getElementById('versionLabel').textContent = reqVer.toUpperCase();
-  const versionSelect = document.getElementById('versionSelect');
-  if (versionSelect) {
-    versionSelect.value = reqVer;
-    versionSelect.addEventListener('change', e => {
-      const v = e.target.value;
-      const url = new URL(window.location);
-      url.searchParams.set('version', v);
-      window.location.href = url.toString();
-    });
+        </select>`;
   }
 
-  /* ── Render PDF ── */
-  const viewport = document.getElementById('viewport');
-  const loadingScreen = document.getElementById('loading');
+  const vars = {
+    ID: escapeHtml(paper.id),
+    TITLE: escapeHtml(paper.title),
+    TITLE_JS: escapeJsString(paper.title),
+    ARCHIVE_NAME: escapeHtml(archive.name),
+    ARCHIVE_LOGO: archive.logo,
+    ARCHIVE_TAGLINE: escapeHtml(archive.tagline),
+    ARCHIVE_SHORT: escapeHtml(archive.shortName),
+    ARCHIVE_GITHUB: archive.github,
+    ARCHIVE_REPO: archiveRepo,
+    PRIMARY_CATEGORY: escapeHtml(primaryCategory),
+    LATEST_VERSION: escapeHtml(latestVersion),
+    LATEST_VERSION_UPPER: escapeHtml(latestVersion).toUpperCase(),
+    VERSIONS_JSON: versionsJson,
+    VERSION_SELECT: versionSelectHtml
+  };
 
-  pdfjsLib.getDocument(fileUrl).promise.then(pdf => {
-    loadingScreen.style.display = 'none';
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const canvas = document.createElement('canvas');
-      canvas.className = 'pdf-page-canvas';
-      viewport.appendChild(canvas);
-
-      pdf.getPage(i).then(page => {
-        const dpr = window.devicePixelRatio || 1;
-        const scale = 1.5;
-        const vp = page.getViewport({ scale });
-
-        canvas.width = vp.width * dpr;
-        canvas.height = vp.height * dpr;
-        canvas.style.width = vp.width + 'px';
-        canvas.style.height = vp.height + 'px';
-
-        page.render({
-          canvasContext: canvas.getContext('2d'),
-          viewport: vp,
-          transform: [dpr, 0, 0, dpr, 0, 0]
-        });
-      });
-    }
-  }).catch(err => {
-    console.error('PDF load error:', err);
-    loadingScreen.innerHTML =
-      '<div class="pdf-error">' +
-      '<p style="font-size:15px;font-weight:500;margin-bottom:8px;">Unable to load PDF</p>' +
-      '<p>The file <strong>' + reqVer + '.pdf</strong> could not be found or loaded.</p>' +
-      '<p style="margin-top:12px;"><a href="../../abs/' + encodeURIComponent(PAPER_ID) + '">← Back to abstract</a></p>' +
-      '</div>';
-  });
-
-  /* ── Download handler ── */
-  const downloadBtn = document.getElementById('downloadBtn');
-  const btnText = document.getElementById('btnText');
-
-  function triggerDownload() {
-    downloadBtn.disabled = true;
-    btnText.textContent = 'Downloading…';
-
-    fetch(fileUrl)
-      .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = saveName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        downloadBtn.disabled = false;
-        btnText.textContent = 'Download PDF';
-      })
-      .catch(() => {
-        downloadBtn.disabled = false;
-        btnText.textContent = 'Download PDF';
-        alert('Download failed. The PDF file may not be available yet.');
-      });
-  }
-
-  downloadBtn.addEventListener('click', triggerDownload);
-
-  /* ── Ctrl+S / Cmd+S override ── */
-  window.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      if (!downloadBtn.disabled) triggerDownload();
-    }
-  });
-<\/script>
-</body>
-</html>`;
+  return renderTemplate(template, vars);
 }
 
 /* ──────────────────────────────────────────────
@@ -477,6 +352,7 @@ function main() {
   fs.mkdirSync(PDF_DIR, { recursive: true });
 
   const template = fs.readFileSync(TEMPLATE_PATH, 'utf-8');
+  const pdfTemplate = fs.readFileSync(PDF_TEMPLATE_PATH, 'utf-8');
 
   const seenIds = new Set();
   for (const paper of papers) {
@@ -484,6 +360,24 @@ function main() {
       throw new Error(`Duplicate paper id detected: ${paper.id}. Every paper needs a unique id.`);
     }
     seenIds.add(paper.id);
+
+    // Validation: check that paper version matches the latest history entry
+    const latestHistoryVersion = paper.history && paper.history.length > 0 
+      ? paper.history[paper.history.length - 1].version 
+      : null;
+    if (latestHistoryVersion && paper.version !== latestHistoryVersion) {
+      console.warn(`  Warning: Paper ${paper.id} current version (${paper.version}) does not match latest history version (${latestHistoryVersion})`);
+    }
+
+    // Validation: check for missing versioned PDF files mentioned in history
+    const pdfVersions = detectPdfVersions(paper.id);
+    if (paper.history && pdfVersions.length > 0) {
+      for (const entry of paper.history) {
+        if (!pdfVersions.includes(entry.version)) {
+          console.warn(`  Warning: History entry version "${entry.version}" for paper ${paper.id} has no corresponding PDF file in pdf/${paper.id}/${entry.version}.pdf`);
+        }
+      }
+    }
 
     // Generate abstract page
     const outDir = path.join(ABS_DIR, paper.id);
@@ -493,11 +387,10 @@ function main() {
     console.log(`  built abs/${paper.id}/index.html`);
 
     // Generate PDF viewer page (if any version exists)
-    const pdfVersions = detectPdfVersions(paper.id);
     if (pdfVersions.length > 0) {
       const pdfOutDir = path.join(PDF_DIR, paper.id);
       fs.mkdirSync(pdfOutDir, { recursive: true });
-      const pdfHtml = buildPdfViewerPage(paper, archive, pdfVersions);
+      const pdfHtml = buildPdfViewerPage(paper, archive, pdfVersions, pdfTemplate);
       fs.writeFileSync(path.join(pdfOutDir, 'index.html'), pdfHtml, 'utf-8');
       console.log(`  built pdf/${paper.id}/index.html (versions: ${pdfVersions.join(', ')})`);
     }
